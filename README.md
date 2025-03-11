@@ -1,6 +1,6 @@
-# AI News Aggregator
+# CoreAgent
 
-A modular TypeScript-based news aggregator that collects, enriches, and analyzes AI-related content from multiple sources using OpenAI's GPT models.
+Deployed for each BioDAO, CoreAgent is an Eliza-based news aggregator that collects, enriches, and analyzes AI-related content from multiple sources using OpenAI's GPT models.
 
 ## Features
 
@@ -20,6 +20,39 @@ A modular TypeScript-based news aggregator that collects, enriches, and analyzes
   - SQLite database for persistent storage
   - Daily summary generation
   - JSON export functionality
+
+## Supported Source Types
+
+### Twitter
+- Monitors specified Twitter accounts
+- Captures tweets, retweets, media
+- Metadata includes engagement metrics
+
+### Discord
+- Channel messages monitoring
+- Announcement tracking
+- Server activity summaries
+
+### GitHub
+- Repository activity tracking
+- Pull requests and commits
+- Issue tracking and summaries
+
+### Cryptocurrency Analytics
+- Token price monitoring (Solana)
+- Market data from CoinGecko
+- Market data from Codex
+- Trading metrics and volume data
+
+## Scheduled Tasks
+
+The application runs hourly tasks via GitHub Actions:
+- Twitter monitoring: every 30 minutes
+- Discord monitoring: every 6 minutes
+- Announcements: hourly
+- GitHub data: every 6 hours
+- Market analytics: every 12 hours
+- Daily summaries: generated once per day
 
 ## Prerequisites
 
@@ -215,39 +248,6 @@ Daily summaries are stored in JSON files with this structure:
   }
 ]
 ```
-
-## Supported Source Types
-
-### Twitter
-- Monitors specified Twitter accounts
-- Captures tweets, retweets, media
-- Metadata includes engagement metrics
-
-### Discord
-- Channel messages monitoring
-- Announcement tracking
-- Server activity summaries
-
-### GitHub
-- Repository activity tracking
-- Pull requests and commits
-- Issue tracking and summaries
-
-### Cryptocurrency Analytics
-- Token price monitoring (Solana)
-- Market data from CoinGecko
-- Market data from Codex
-- Trading metrics and volume data
-
-## Scheduled Tasks
-
-The application runs hourly tasks via GitHub Actions:
-- Twitter monitoring: every 30 minutes
-- Discord monitoring: every 6 minutes
-- Announcements: hourly
-- GitHub data: every 6 hours
-- Market analytics: every 12 hours
-- Daily summaries: generated once per day
 
 ## Environment Variables Reference
 
