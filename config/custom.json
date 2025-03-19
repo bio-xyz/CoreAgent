@@ -1,6 +1,6 @@
 {
     "settings": {
-        "runOnce": true
+        "runOnce": false
     },
     "sources": [
       {
@@ -9,7 +9,7 @@
         "interval": 360000,
         "params": {
           "botToken": "process.env.DISCORD_TOKEN",
-          "channelIds": ["1324432269053530202"],
+          "channelIds": ["1308403448332685313"],
           "provider": "summaryOpenAiProvider"
         }
       },
@@ -19,18 +19,16 @@
         "interval": 3600000,
         "params": {
           "botToken": "process.env.DISCORD_TOKEN",
-          "channelIds": ["1020348236629819412"]
+          "channelIds": ["1200026217622028318"]
         }
       },
       {
-        "type": "TwitterSource",
-        "name": "twitter",
-        "interval": 1800000,
+        "type": "CodexAnalyticsSource",
+        "name": "codexAnalytics",
+        "interval": 43200000,
         "params": {
-          "username": "process.env.TWITTER_USERNAME",
-          "password": "process.env.TWITTER_PASSWORD",
-          "email": "process.env.TWITTER_EMAIL",
-          "accounts": ["endrarediseases", "longcovidlabs", "QuantumBioDAO", "cryodao", "athena_dao_", "valley_dao", "hairdao_", "psy_dao", "cerebrum_dao", "vita_dao", "bioprotocol"] 
+            "apiKey": "process.env.CODEX_API_KEY",
+            "tokenAddresses": ["0xcb1592591996765ec0efc1f92599a19767ee5ffa"]
         }
       }
     ],
@@ -40,11 +38,9 @@
           "name": "summaryOpenAiProvider",
           "params": {
             "apiKey": "process.env.OPENAI_API_KEY",
-            "model": "openai/chatgpt-4o-latest",
+            "model": "gpt-4o",
             "temperature": 0,
-            "useOpenRouter": true,
-            "siteUrl": "process.env.SITE_URL",
-            "siteName": "process.env.SITE_NAME"
+            "useOpenRouter": false
           }
         },
         {
@@ -52,11 +48,9 @@
           "name": "miniOpenAiProvider",
           "params": {
             "apiKey": "process.env.OPENAI_API_KEY",
-            "model": "openai/gpt-4o-mini",
+            "model": "gpt-4o",
             "temperature": 0,
-            "useOpenRouter": true,
-            "siteUrl": "process.env.SITE_URL",
-            "siteName": "process.env.SITE_NAME"
+            "useOpenRouter": false
           }
         }
     ],
@@ -88,7 +82,10 @@
             "provider": "summaryOpenAiProvider",
             "storage": "SQLiteStorage",
             "summaryType": "dailySummary",
-            "source": "aiSummary"
+            "source": "aiSummary",
+            "discordChannelIds": ["1349801419427025006"],
+            "discordToken": "process.env.DISCORD_TOKEN",
+            "outputPath": "./output"
           }
         }
     ]

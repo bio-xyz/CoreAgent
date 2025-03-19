@@ -6,6 +6,7 @@ import { ContentItem, SummaryItem } from "../../types";
 import { createJSONPromptForTopics, createMarkdownPromptForJSON } from "../../helpers/promptHelper";
 import fs from "fs";
 import path from "path";
+import { DiscordNotifier } from "../notifiers/DiscordNotifier";
 
 const hour = 60 * 60 * 1000;
 
@@ -15,6 +16,15 @@ interface DailySummaryGeneratorConfig {
   summaryType: string;
   source: string;
   outputPath?: string; // New optional parameter for output path
+  discordChannelIds?: string[]; // Optional Discord channel IDs for posting summaries
+  discordToken?: string; // Optional Discord bot token
+}
+
+interface TopicGroup {
+  topic: string;
+  objects: ContentItem[];
+  allTopics?: string[];
+  sourceLinks?: string[]; // Added for citation links
 }
 
 export class DailySummaryGenerator {
@@ -24,6 +34,7 @@ export class DailySummaryGenerator {
   private source: string;
   private blockedTopics: string[] = ['open source'];
   private outputPath: string;
+  private discordNotifier?: DiscordNotifier;
 
   constructor(config: DailySummaryGeneratorConfig) {
     this.provider = config.provider;
@@ -31,6 +42,16 @@ export class DailySummaryGenerator {
     this.summaryType = config.summaryType;
     this.source = config.source;
     this.outputPath = config.outputPath || './'; // Default to current directory if not specified
+    
+    // Initialize Discord notifier if channel IDs are provided
+    if (config.discordChannelIds && config.discordChannelIds.length > 0 && config.discordToken) {
+      this.discordNotifier = new DiscordNotifier({
+        name: 'summaryNotifier',
+        botToken: config.discordToken,
+        channelIds: config.discordChannelIds,
+        outputPath: this.outputPath
+      });
+    }
   }
 
   
@@ -48,27 +69,37 @@ export class DailySummaryGenerator {
       const groupedContent = this.groupObjectsByTopics(contentItems);
 
       const allSummaries: any[] = [];
+      const sourceLinksByTopic: Record<string, string[]> = {}; // Store source links by topic
 
       let maxTopicsToSummarize = 0;
 
       for (const grouped of groupedContent) {
         try {
-          if (!grouped ) continue;
+          if (!grouped) continue;
           const { topic, objects } = grouped;
           
           if (!topic || !objects || objects.length <= 0 || maxTopicsToSummarize >= 10) continue;
+          
+          // Extract and store source links for this topic
+          const sourceLinks: string[] = objects
+            .filter((obj: ContentItem) => obj.link !== undefined)
+            .map((obj: ContentItem) => obj.link as string);
+          
+          sourceLinksByTopic[topic] = Array.from(new Set(sourceLinks)); // Remove duplicates
 
           const prompt = createJSONPromptForTopics(topic, objects, dateStr);
           const summaryText = await this.provider.summarize(prompt);
           const summaryJSONString = summaryText.replace(/```json\n|```/g, "");
           let summaryJSON = JSON.parse(summaryJSONString);
           summaryJSON["topic"] = topic;
+          // Add source links to the JSON summary
+          summaryJSON["sourceLinks"] = sourceLinksByTopic[topic];
   
           allSummaries.push(summaryJSON);
           maxTopicsToSummarize++;
         }
         catch (e) {
-          console.log( e );
+          console.log(e);
         }
       }
 
@@ -91,6 +122,15 @@ export class DailySummaryGenerator {
       await this.writeMDToFile(dateStr, markdownString);
 
       console.log(`Daily report for ${dateStr} generated and stored successfully.`);
+      
+      // Notify Discord if configured
+      if (this.discordNotifier) {
+        try {
+          await this.discordNotifier.sendSummary(dateStr, sourceLinksByTopic);
+        } catch (error) {
+          console.error(`Error sending summary to Discord: ${error}`);
+        }
+      }
     } catch (error) {
       console.error(`Error generating daily summary for ${dateStr}:`, error);
     }
